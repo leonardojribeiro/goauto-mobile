@@ -1,5 +1,5 @@
 #firebase
-**/firebase_options.dart
+/src/firebase_options.dart
 
 # Miscellaneous
 *.class
