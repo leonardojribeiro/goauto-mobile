@@ -1,8 +1,8 @@
 class ProviderModel {
   final String? id;
-  final String name;
-  final String telephone;
-  final String whatsapp;
+  final String? name;
+  final String? telephone;
+  final String? whatsapp;
 
   ProviderModel({
     this.id,

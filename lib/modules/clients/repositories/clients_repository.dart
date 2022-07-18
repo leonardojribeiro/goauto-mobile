@@ -8,6 +8,14 @@ class ClientsRepository {
     return raw.id;
   }
 
+  Future<Map<String, dynamic>> findRawById(String id) async {
+    final raw = await FirebaseFirestore.instance.collection('clients').doc(id).get();
+    return {
+      'id': raw.id,
+      ...raw.data() ?? {},
+    };
+  }
+
   Future<List<ClientModel>> find() async {
     final raw = await FirebaseFirestore.instance.collection('clients').get();
     return raw.docs

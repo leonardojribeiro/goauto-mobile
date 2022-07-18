@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:goauto/modules/clients/models/client_model.dart';
-import 'package:goauto/modules/clients/repositories/clients_repository.dart';
+import 'package:goauto/modules/clients/widgets/clients_autocomplete_widget.dart';
 import 'package:goauto/modules/vehicles/dtos/create_vehicle_dto.dart';
 import 'package:goauto/modules/vehicles/repositories/vehicles_repository.dart';
 
 class CreateVehicleWidget extends StatefulWidget {
-  const CreateVehicleWidget({Key? key}) : super(key: key);
+  const CreateVehicleWidget({
+    Key? key,
+    this.initialLicensePlate,
+  }) : super(key: key);
+  final String? initialLicensePlate;
 
   @override
   State<CreateVehicleWidget> createState() => _CreateVehicleWidgetState();
@@ -15,17 +19,11 @@ class CreateVehicleWidget extends StatefulWidget {
 class _CreateVehicleWidgetState extends State<CreateVehicleWidget> {
   final licensePlateController = TextEditingController();
   final descriptionController = TextEditingController();
-  final clientIdNotifier = ValueNotifier<String?>(null);
-  final clientsNotifier = ValueNotifier<List<ClientModel>>([]);
-
-  Future<void> findClients() async {
-    clientsNotifier.value = await GetIt.I.get<ClientsRepository>().find();
-    setState(() {});
-  }
+  final clientNotifier = ValueNotifier<ClientModel?>(null);
 
   @override
   void initState() {
-    findClients();
+    licensePlateController.text = widget.initialLicensePlate ?? '';
     super.initState();
   }
 
@@ -35,7 +33,8 @@ class _CreateVehicleWidgetState extends State<CreateVehicleWidget> {
           CreateVehicleDTO(
             licensePlate: licensePlateController.text,
             description: descriptionController.text,
-            clientId: clientIdNotifier.value ?? '',
+            clientId: clientNotifier.value?.id ?? '',
+            client: clientNotifier.value ?? ClientModel(),
           ),
         );
     navigator.pop(id);
@@ -70,25 +69,8 @@ class _CreateVehicleWidgetState extends State<CreateVehicleWidget> {
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Autocomplete<ClientModel>(
-                optionsBuilder: (text) async {
-                  final matches = clientsNotifier.value.where(
-                    (element) => element.name.toLowerCase().contains(text.text.toLowerCase()),
-                  );
-                  return matches;
-                },
-                onSelected: (client) {
-                  clientIdNotifier.value = client.id;
-                },
-                fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) => TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Cliente',
-                  ),
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  onFieldSubmitted: (_) => onFieldSubmitted(),
-                ),
-                displayStringForOption: (c) => c.name,
+              child: ClientsAutocompleteWidget(
+                onSelected: (client) => clientNotifier.value = client,
               ),
             ),
           ],

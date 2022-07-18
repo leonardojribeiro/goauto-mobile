@@ -4,6 +4,7 @@ import 'package:goauto/config/setup_dependencies.dart';
 import 'package:goauto/firebase_options.dart';
 import 'package:goauto/modules/clients/use_cases/create_client/create_client_widget.dart';
 import 'package:goauto/modules/orders/use_cases/create_order/create_order_widget.dart';
+import 'package:goauto/modules/orders/use_cases/list_orders/list_orders_widget.dart';
 import 'package:goauto/modules/providers/use_cases/create_provider/create_provider_widget.dart';
 import 'package:goauto/modules/vehicles/use_cases/create_vehicle/create_vehicle_widget.dart';
 
@@ -79,6 +80,14 @@ class _MyWidgetState extends State<MyWidget> {
               ));
             },
             child: const Text('Cadastrar ordens de serviço'),
+          ),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => const ListOrdersWidget(),
+              ));
+            },
+            child: const Text('Listar ordens de serviço'),
           ),
         ],
       ),

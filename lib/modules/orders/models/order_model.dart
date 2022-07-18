@@ -20,9 +20,14 @@ class OrderModel {
     return OrderModel(
       id: map['id'],
       vehicle: map['vehicle'] != null ? VehicleModel.fromMap(map['vehicle']) : null,
-      createdAt: map['createdAt'] != null ? DateTime.fromMillisecondsSinceEpoch(map['createdAt']) : null,
+      createdAt: map['createdAt'] != null ? DateTime.tryParse(map['createdAt'].toString()) : null,
       serviceItems: map['serviceItems'] != null ? List<ServiceItemModel>.from(map['serviceItems']?.map((x) => ServiceItemModel.fromMap(x))) : null,
       partItems: map['partItems'] != null ? List<PartItemModel>.from(map['partItems']?.map((x) => PartItemModel.fromMap(x))) : null,
     );
+  }
+
+  @override
+  String toString() {
+    return 'OrderModel(id: $id, vehicle: $vehicle, createdAt: $createdAt, serviceItems: $serviceItems, partItems: $partItems)';
   }
 }

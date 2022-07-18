@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+
 import 'package:goauto/modules/providers/dtos/create_provider_dto.dart';
 import 'package:goauto/modules/providers/repositories/providers_repository.dart';
 
 class CreateProviderWidget extends StatefulWidget {
-  const CreateProviderWidget({Key? key}) : super(key: key);
+  const CreateProviderWidget({
+    Key? key,
+    this.initalName,
+  }) : super(key: key);
+  final String? initalName;
 
   @override
   State<CreateProviderWidget> createState() => _CreateProviderWidgetState();
@@ -14,6 +19,12 @@ class _CreateProviderWidgetState extends State<CreateProviderWidget> {
   final nameController = TextEditingController();
   final telephoneController = TextEditingController();
   final whatsappController = TextEditingController();
+
+  @override
+  void initState() {
+    nameController.text = widget.initalName ?? '';
+    super.initState();
+  }
 
   Future<void> save() async {
     final navigator = Navigator.of(context);

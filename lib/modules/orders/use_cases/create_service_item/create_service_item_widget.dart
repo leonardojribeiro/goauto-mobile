@@ -26,6 +26,7 @@ class _CreateServiceItemWidgetState extends State<CreateServiceItemWidget> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: const Text('Adicionar serviço'),
       content: Column(
         mainAxisSize: MainAxisSize.min,

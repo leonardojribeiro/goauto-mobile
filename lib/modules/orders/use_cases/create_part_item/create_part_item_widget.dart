@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:goauto/modules/orders/models/part_item_model.dart';
-import 'package:goauto/modules/providers/models/provider_model.dart';
+import 'package:goauto/modules/providers/widgets/providers_autocomplete_widget.dart';
 
 class CreatePartItemWidget extends StatefulWidget {
   const CreatePartItemWidget({
     Key? key,
-    required this.providers,
   }) : super(key: key);
-  final List<ProviderModel> providers;
 
   @override
   State<CreatePartItemWidget> createState() => _CreatePartItemWidgetState();
@@ -34,6 +32,7 @@ class _CreatePartItemWidgetState extends State<CreatePartItemWidget> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: const Text('Adicionar peça'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -59,28 +58,10 @@ class _CreatePartItemWidgetState extends State<CreatePartItemWidget> {
               labelText: 'Quantidade',
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Autocomplete<ProviderModel>(
-              optionsBuilder: (text) async {
-                final matches = widget.providers.where(
-                  (element) => element.name.toLowerCase().contains(text.text.toLowerCase()),
-                );
-                return matches;
-              },
-              onSelected: (provider) {
-                providerIdNotifier.value = provider.id;
-              },
-              fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) => TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Fornecedor',
-                ),
-                controller: textEditingController,
-                focusNode: focusNode,
-                onFieldSubmitted: (_) => onFieldSubmitted(),
-              ),
-              displayStringForOption: (provider) => provider.name,
-            ),
+          ProvidersAutocompleteWidget(
+            onSelected: (provider) {
+              providerIdNotifier.value = provider.id;
+            },
           ),
         ],
       ),

@@ -4,12 +4,12 @@ import 'package:goauto/modules/orders/dtos/create_order_dto.dart';
 import 'package:goauto/modules/orders/models/part_item_model.dart';
 import 'package:goauto/modules/orders/models/service_item_model.dart';
 import 'package:goauto/modules/orders/repositories/orders_repository.dart';
-import 'package:goauto/modules/orders/use_cases/create_part_item/create_part_item_widget.dart';
-import 'package:goauto/modules/orders/use_cases/create_service_item/create_service_item_widget.dart';
+import 'package:goauto/modules/orders/use_cases/create_order/widgets/parts_list_widget.dart';
+import 'package:goauto/modules/orders/use_cases/create_order/widgets/services_list_widget.dart';
 import 'package:goauto/modules/providers/models/provider_model.dart';
 import 'package:goauto/modules/providers/repositories/providers_repository.dart';
 import 'package:goauto/modules/vehicles/models/vehicle_model.dart';
-import 'package:goauto/modules/vehicles/repositories/vehicles_repository.dart';
+import 'package:goauto/modules/vehicles/widgtes/vehicles_autocomplete_widget.dart';
 
 class CreateOrderWidget extends StatefulWidget {
   const CreateOrderWidget({Key? key}) : super(key: key);
@@ -19,16 +19,11 @@ class CreateOrderWidget extends StatefulWidget {
 }
 
 class _CreateOrderWidgetState extends State<CreateOrderWidget> {
-  final vehiclesNotifier = ValueNotifier<List<VehicleModel>>([]);
   final providersNotifier = ValueNotifier<List<ProviderModel>>([]);
   final vehicleNotifier = ValueNotifier<VehicleModel?>(null);
   final serviceItemsNotifier = ValueNotifier<List<ServiceItemModel>>([]);
   final partItemsNotifier = ValueNotifier<List<PartItemModel>>([]);
-
-  Future<void> findClients() async {
-    vehiclesNotifier.value = await GetIt.I.get<VehiclesRepository>().find();
-    setState(() {});
-  }
+  final pageController = PageController();
 
   Future<void> findProviders() async {
     providersNotifier.value = await GetIt.I.get<ProvidersRepository>().find();
@@ -36,7 +31,6 @@ class _CreateOrderWidgetState extends State<CreateOrderWidget> {
 
   @override
   void initState() {
-    findClients();
     findProviders();
     super.initState();
   }
@@ -46,6 +40,7 @@ class _CreateOrderWidgetState extends State<CreateOrderWidget> {
     final id = await OrdersRepository().create(
       CreateOrderDTO(
         vehicleId: vehicleNotifier.value?.id ?? '',
+        vehicle: vehicleNotifier.value ?? VehicleModel(),
         serviceItems: serviceItemsNotifier.value,
         partItems: partItemsNotifier.value,
         createdAt: DateTime.now(),
@@ -56,183 +51,96 @@ class _CreateOrderWidgetState extends State<CreateOrderWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cadastrar ordem de serviço'),
-      ),
-      body: PageView(
-        children: [
-          Center(
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Autocomplete<VehicleModel>(
-                  optionsBuilder: (text) async {
-                    final matches = vehiclesNotifier.value.where(
-                      (element) => (element.licensePlate ?? '').toLowerCase().contains(text.text.toLowerCase()),
-                    );
-                    return matches;
-                  },
-                  onSelected: (vehicle) {
-                    vehicleNotifier.value = vehicle;
-                  },
-                  fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) => TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Veículo',
-                    ),
-                    controller: textEditingController,
-                    focusNode: focusNode,
-                    onFieldSubmitted: (_) => onFieldSubmitted(),
-                  ),
-                  displayStringForOption: (vehicle) => '${vehicle.licensePlate} (${vehicle.description}) ',
-                ),
-              ),
+    return WillPopScope(
+      onWillPop: () async => true,
+      child: ValueListenableBuilder<VehicleModel?>(
+        valueListenable: vehicleNotifier,
+        builder: (context, vehicle, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Cadastrar ordem de serviço'),
             ),
-          ),
-          ValueListenableBuilder<VehicleModel?>(
-            valueListenable: vehicleNotifier,
-            builder: (context, vehicle, child) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+            body: Padding(
+              padding: const EdgeInsets.only(bottom: 64),
+              child: PageView(
+                controller: pageController,
                 children: [
-                  Text('Veículo: ${vehicle?.licensePlate}'),
-                  Expanded(
-                    child: DefaultTabController(
-                      length: 2,
-                      child: Column(
-                        children: [
-                          const TabBar(
-                            tabs: [
-                              Tab(
-                                text: 'Serviços',
-                              ),
-                              Tab(
-                                text: 'Peças',
-                              ),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              children: [
-                                ValueListenableBuilder<List<ServiceItemModel>>(
-                                  valueListenable: serviceItemsNotifier,
-                                  builder: (context, items, child) {
-                                    final amount = items.fold<num>(0.00, (amount, item) => amount + (item.quantity ?? 0) * (item.unitPrice ?? 0));
-                                    return Column(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            children: [
-                                              Expanded(
-                                                child: ListView.builder(
-                                                  itemBuilder: (context, index) {
-                                                    final item = items[index];
-                                                    return ListTile(
-                                                      title: Text(item.description ?? ''),
-                                                      subtitle: Text('${item.quantity} X ${item.unitPrice} = ${(item.quantity ?? 0) * (item.unitPrice ?? 0)}'),
-                                                    );
-                                                  },
-                                                  itemCount: items.length,
-                                                ),
-                                              ),
-                                              OutlinedButton(
-                                                onPressed: () async {
-                                                  final result = await showDialog<ServiceItemModel>(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return const CreateServiceItemWidget();
-                                                      });
-                                                  if (result != null) {
-                                                    serviceItemsNotifier.value = List.from([...serviceItemsNotifier.value, result]);
-                                                  }
-                                                },
-                                                child: const Text('Adicionar serviço'),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.centerRight,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text('Total de serviços: $amount'),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                                ValueListenableBuilder<List<PartItemModel>>(
-                                  valueListenable: partItemsNotifier,
-                                  builder: (context, items, child) {
-                                    final amount = items.fold<num>(0.00, (amount, item) => amount + (item.quantity ?? 0) * (item.unitPrice ?? 0));
-                                    return Column(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            children: [
-                                              Expanded(
-                                                child: ListView.builder(
-                                                  itemBuilder: (context, index) {
-                                                    final item = items[index];
-                                                    return ListTile(
-                                                      title: Text(item.description ?? ''),
-                                                      subtitle: Text('${item.quantity} X ${item.unitPrice} = ${(item.quantity ?? 0) * (item.unitPrice ?? 0)}'),
-                                                    );
-                                                  },
-                                                  itemCount: items.length,
-                                                ),
-                                              ),
-                                              ValueListenableBuilder<List<ProviderModel>>(
-                                                  valueListenable: providersNotifier,
-                                                  builder: (context, providers, child) {
-                                                    return OutlinedButton(
-                                                      onPressed: () async {
-                                                        final result = await showDialog<ServiceItemModel>(
-                                                          context: context,
-                                                          builder: (context) {
-                                                            return CreatePartItemWidget(
-                                                              providers: providers,
-                                                            );
-                                                          },
-                                                        );
-                                                        if (result != null) {
-                                                          partItemsNotifier.value = List.from([...partItemsNotifier.value, result]);
-                                                        }
-                                                      },
-                                                      child: const Text('Adicionar Peça'),
-                                                    );
-                                                  }),
-                                            ],
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.centerRight,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text('Total de peças: $amount'),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                  Center(
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: VehiclesAutocompleteWidget(
+                          onSelected: (vehicle) => vehicleNotifier.value = vehicle,
+                        ),
                       ),
                     ),
                   ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Veículo: ${vehicle?.licensePlate?.toUpperCase()}'),
+                      Expanded(
+                        child: DefaultTabController(
+                          length: 2,
+                          child: Column(
+                            children: [
+                              TabBar(
+                                labelColor: Theme.of(context).primaryColor,
+                                tabs: const [
+                                  Tab(
+                                    text: 'Serviços',
+                                  ),
+                                  Tab(
+                                    text: 'Peças',
+                                  ),
+                                ],
+                              ),
+                              Expanded(
+                                child: TabBarView(
+                                  children: [
+                                    ServicesListWidget(
+                                      serviceItemsNotifier: serviceItemsNotifier,
+                                    ),
+                                    PartListWidget(
+                                      partItemsNotifier: partItemsNotifier,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              );
-            },
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: save,
-        child: const Icon(Icons.check),
+              ),
+            ),
+            floatingActionButton: vehicle != null
+                ? AnimatedBuilder(
+                    animation: Listenable.merge([pageController]),
+                    builder: (context, snapshot) {
+                      if (pageController.page == 0) {
+                        return FloatingActionButton(
+                          onPressed: () {
+                            pageController.nextPage(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          child: const Icon(Icons.arrow_forward_rounded),
+                        );
+                      }
+                      return FloatingActionButton(
+                        onPressed: () {
+                          save();
+                        },
+                        child: const Icon(Icons.check),
+                      );
+                    })
+                : Container(),
+          );
+        },
       ),
     );
   }
