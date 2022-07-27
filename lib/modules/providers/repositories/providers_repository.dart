@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:goauto/modules/providers/dtos/create_provider_dto.dart';
+import 'package:goauto/modules/providers/use_cases/create_provider/create_provider_dto.dart';
 import 'package:goauto/modules/providers/models/provider_model.dart';
 
 class ProvidersRepository {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
-import 'package:goauto/modules/clients/dtos/create_client_dto.dart';
+import 'package:goauto/modules/clients/use_cases/create_client/create_client_dto.dart';
 import 'package:goauto/modules/clients/repositories/clients_repository.dart';
 
 class CreateClientWidget extends StatefulWidget {

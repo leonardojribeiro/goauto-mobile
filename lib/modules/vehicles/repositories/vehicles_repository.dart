@@ -1,6 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:goauto/modules/clients/repositories/clients_repository.dart';
-import 'package:goauto/modules/vehicles/dtos/create_vehicle_dto.dart';
+import 'package:goauto/modules/vehicles/use_cases/create_vehicle/create_vehicle_dto.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:goauto/modules/vehicles/models/vehicle_model.dart';
 

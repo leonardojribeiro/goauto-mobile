@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+
 import 'package:goauto/modules/providers/models/provider_model.dart';
 import 'package:goauto/modules/providers/repositories/providers_repository.dart';
 import 'package:goauto/modules/providers/use_cases/create_provider/create_provider_widget.dart';
@@ -8,8 +9,12 @@ class ProvidersAutocompleteWidget extends StatefulWidget {
   const ProvidersAutocompleteWidget({
     Key? key,
     required this.onSelected,
+    this.focusNode,
+    this.onEditingComplete,
   }) : super(key: key);
   final void Function(ProviderModel client) onSelected;
+  final FocusNode? focusNode;
+  final VoidCallback? onEditingComplete;
 
   @override
   State<ProvidersAutocompleteWidget> createState() => _ProvidersAutocompleteWidgetState();
@@ -52,15 +57,25 @@ class _ProvidersAutocompleteWidgetState extends State<ProvidersAutocompleteWidge
                 widget.onSelected(vehicle);
               },
               fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-                return TextFormField(
-                  onChanged: (text) => inputText = text,
-                  decoration: InputDecoration(
-                    labelText: vehicles.isNotEmpty ? 'Fornecedor' : 'Aguarde...',
+                return Focus(
+                  focusNode: widget.focusNode,
+                  onFocusChange: (hasFocus) {
+                    if (hasFocus) {
+                      focusNode.requestFocus();
+                    }
+                  },
+                  child: TextFormField(
+                    onChanged: (text) => inputText = text,
+                    decoration: InputDecoration(
+                      labelText: vehicles.isNotEmpty ? 'Fornecedor' : 'Aguarde...',
+                    ),
+                    enabled: vehicles.isNotEmpty,
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    validator: (text) => text?.isNotEmpty == true ? null : 'Selecione um fornecedor',
+                    onFieldSubmitted: (_) => onFieldSubmitted(),
+                    onEditingComplete: widget.onEditingComplete,
                   ),
-                  enabled: vehicles.isNotEmpty,
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  onFieldSubmitted: (_) => onFieldSubmitted(),
                 );
               },
               displayStringForOption: (client) => client.name ?? '',

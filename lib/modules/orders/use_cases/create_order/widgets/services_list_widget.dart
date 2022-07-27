@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:goauto/modules/orders/models/service_item_model.dart';
 import 'package:goauto/modules/orders/use_cases/create_service_item/create_service_item_widget.dart';
+import 'package:intl/intl.dart';
 
 class ServicesListWidget extends StatefulWidget {
   const ServicesListWidget({
@@ -15,6 +16,7 @@ class ServicesListWidget extends StatefulWidget {
 }
 
 class _ServicesListWidgetState extends State<ServicesListWidget> {
+  final formatter = NumberFormat('#,##0.00', 'pt_BR');
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<List<ServiceItemModel>>(
@@ -30,12 +32,62 @@ class _ServicesListWidgetState extends State<ServicesListWidget> {
                     child: ListView.builder(
                       itemBuilder: (context, index) {
                         final item = items[index];
-                        return ListTile(
-                          title: Text(item.description ?? ''),
-                          subtitle: Text('${item.quantity} X ${item.unitPrice} = ${(item.quantity ?? 0) * (item.unitPrice ?? 0)}'),
+                        final itemAmount = (item.unitPrice ?? 0) * (item.quantity ?? 0);
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                item.description ?? '',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              Table(
+                                columnWidths: const {
+                                  0: FlexColumnWidth(),
+                                  1: FlexColumnWidth(),
+                                  2: FlexColumnWidth(),
+                                },
+                                children: [
+                                  const TableRow(
+                                    children: [
+                                      TableCell(child: Text('Valor Unitário')),
+                                      TableCell(child: Text('QTD')),
+                                      TableCell(child: Text('Valor Total')),
+                                    ],
+                                  ),
+                                  TableRow(
+                                    children: [
+                                      TableCell(
+                                        child: Text('R\$ ${formatter.format(item.unitPrice ?? 0)}'),
+                                      ),
+                                      TableCell(
+                                        child: Text('${item.quantity}'),
+                                      ),
+                                      TableCell(
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Text('R\$ ${formatter.format(itemAmount)}'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const Divider(),
+                            ],
+                          ),
                         );
                       },
                       itemCount: items.length,
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Total de serviços: R\$ ${formatter.format(amount)}'),
                     ),
                   ),
                   OutlinedButton(
@@ -52,13 +104,6 @@ class _ServicesListWidgetState extends State<ServicesListWidget> {
                     child: const Text('Adicionar serviço'),
                   ),
                 ],
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text('Total de serviços: $amount'),
               ),
             ),
           ],

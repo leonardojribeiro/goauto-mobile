@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:goauto/modules/clients/models/client_model.dart';
 import 'package:goauto/modules/clients/widgets/clients_autocomplete_widget.dart';
-import 'package:goauto/modules/vehicles/dtos/create_vehicle_dto.dart';
+import 'package:goauto/modules/vehicles/use_cases/create_vehicle/create_vehicle_dto.dart';
 import 'package:goauto/modules/vehicles/repositories/vehicles_repository.dart';
 
 class CreateVehicleWidget extends StatefulWidget {

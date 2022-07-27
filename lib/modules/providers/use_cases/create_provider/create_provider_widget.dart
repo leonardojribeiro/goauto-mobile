@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
-import 'package:goauto/modules/providers/dtos/create_provider_dto.dart';
+import 'package:goauto/modules/providers/use_cases/create_provider/create_provider_dto.dart';
 import 'package:goauto/modules/providers/repositories/providers_repository.dart';
 
 class CreateProviderWidget extends StatefulWidget {

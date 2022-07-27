@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get_it/get_it.dart';
-import 'package:goauto/modules/orders/dtos/create_order_dto.dart';
+import 'package:goauto/modules/orders/use_cases/create_order/create_order_dto.dart';
 import 'package:goauto/modules/orders/models/order_model.dart';
 import 'package:goauto/modules/vehicles/repositories/vehicles_repository.dart';
 

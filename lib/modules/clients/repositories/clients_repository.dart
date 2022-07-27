@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:goauto/modules/clients/dtos/create_client_dto.dart';
+import 'package:goauto/modules/clients/use_cases/create_client/create_client_dto.dart';
 import 'package:goauto/modules/clients/models/client_model.dart';
 
 class ClientsRepository {

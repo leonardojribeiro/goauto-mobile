@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:goauto/modules/orders/dtos/create_order_dto.dart';
+import 'package:goauto/modules/orders/use_cases/create_order/create_order_dto.dart';
 import 'package:goauto/modules/orders/models/part_item_model.dart';
 import 'package:goauto/modules/orders/models/service_item_model.dart';
 import 'package:goauto/modules/orders/repositories/orders_repository.dart';
@@ -9,7 +9,7 @@ import 'package:goauto/modules/orders/use_cases/create_order/widgets/services_li
 import 'package:goauto/modules/providers/models/provider_model.dart';
 import 'package:goauto/modules/providers/repositories/providers_repository.dart';
 import 'package:goauto/modules/vehicles/models/vehicle_model.dart';
-import 'package:goauto/modules/vehicles/widgtes/vehicles_autocomplete_widget.dart';
+import 'package:goauto/modules/vehicles/widgets/vehicles_autocomplete_widget.dart';
 
 class CreateOrderWidget extends StatefulWidget {
   const CreateOrderWidget({Key? key}) : super(key: key);
@@ -57,15 +57,14 @@ class _CreateOrderWidgetState extends State<CreateOrderWidget> {
         valueListenable: vehicleNotifier,
         builder: (context, vehicle, child) {
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('Cadastrar ordem de serviço'),
-            ),
-            body: Padding(
-              padding: const EdgeInsets.only(bottom: 64),
-              child: PageView(
-                controller: pageController,
-                children: [
-                  Center(
+            body: PageView(
+              controller: pageController,
+              children: [
+                Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Cadastrar ordem de serviço'),
+                  ),
+                  body: Center(
                     child: Card(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -75,10 +74,35 @@ class _CreateOrderWidgetState extends State<CreateOrderWidget> {
                       ),
                     ),
                   ),
-                  Column(
+                  floatingActionButton: vehicle != null
+                      ? FloatingActionButton(
+                          onPressed: () {
+                            pageController.nextPage(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          child: const Icon(Icons.arrow_forward_rounded),
+                        )
+                      : Container(),
+                ),
+                Scaffold(
+                  appBar: AppBar(
+                    title: Text('Veículo: ${vehicle?.licensePlate?.toUpperCase()}'),
+                    leading: IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.close),
+                    ),
+                    actions: [
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.check),
+                      )
+                    ],
+                  ),
+                  body: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('Veículo: ${vehicle?.licensePlate?.toUpperCase()}'),
                       Expanded(
                         child: DefaultTabController(
                           length: 2,
@@ -113,32 +137,9 @@ class _CreateOrderWidgetState extends State<CreateOrderWidget> {
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            floatingActionButton: vehicle != null
-                ? AnimatedBuilder(
-                    animation: Listenable.merge([pageController]),
-                    builder: (context, snapshot) {
-                      if (pageController.page == 0) {
-                        return FloatingActionButton(
-                          onPressed: () {
-                            pageController.nextPage(
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          child: const Icon(Icons.arrow_forward_rounded),
-                        );
-                      }
-                      return FloatingActionButton(
-                        onPressed: () {
-                          save();
-                        },
-                        child: const Icon(Icons.check),
-                      );
-                    })
-                : Container(),
           );
         },
       ),
