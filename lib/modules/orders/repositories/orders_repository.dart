@@ -1,21 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:get_it/get_it.dart';
+import 'package:flutter/material.dart';
 import 'package:goauto/modules/orders/use_cases/create_order/create_order_dto.dart';
 import 'package:goauto/modules/orders/models/order_model.dart';
 import 'package:goauto/modules/orders/use_cases/create_order/update_order_dto.dart';
-import 'package:goauto/modules/vehicles/repositories/vehicles_repository.dart';
 
 class OrdersRepository {
-  final vehiclesRepository = GetIt.I.get<VehiclesRepository>();
+  final _orders = ValueNotifier<List<OrderModel>>([]);
+  OrdersRepository() {
+    FirebaseFirestore.instance.collection('orders').orderBy('createdAt', descending: true).snapshots().listen((event) {
+      _orders.value = event.docs
+          .map((e) => OrderModel.fromMap({
+                'id': e.id,
+                ...e.data(),
+              }))
+          .toList();
+    });
+  }
 
-  Future<List<OrderModel>> find() async {
-    final raw = await FirebaseFirestore.instance.collection('orders').get();
-    return raw.docs
-        .map((e) => OrderModel.fromMap({
-              'id': e.id,
-              ...e.data(),
-            }))
-        .toList();
+  ValueNotifier<List<OrderModel>> docs() {
+    return _orders;
   }
 
   Future<void> create(CreateOrderDTO data) async {

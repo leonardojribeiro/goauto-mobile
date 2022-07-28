@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:goauto/modules/orders/widgets/dialog_confirm_widget.dart';
 import 'package:intl/intl.dart';
 
 import 'package:goauto/modules/orders/models/part_item_model.dart';
-import 'package:goauto/modules/orders/use_cases/create_part_item/create_part_item_widget.dart';
+import 'package:goauto/modules/orders/widgets/form_part_item_widget.dart';
 import 'package:goauto/modules/orders/widgets/form_order_widget.dart';
 import 'package:goauto/shared/utilz/calculate_discount.dart';
 import 'package:goauto/shared/utilz/format_discount.dart';
@@ -13,7 +14,7 @@ class PartListWidget extends StatefulWidget {
     required this.partItemsNotifier,
     required this.status,
   }) : super(key: key);
-  final ValueNotifier<List<PartItemModel>> partItemsNotifier;
+  final ValueNotifier<ItemsState<PartItemModel>> partItemsNotifier;
   final FormOrderStatus status;
 
   @override
@@ -25,22 +26,9 @@ class _PartListWidgetState extends State<PartListWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<PartItemModel>>(
+    return ValueListenableBuilder<ItemsState<PartItemModel>>(
       valueListenable: widget.partItemsNotifier,
-      builder: (context, items, child) {
-        // final amount = items.fold<num>(0.00, (amount, item) => amount + (item.quantity ?? 0) * (item.unitPrice ?? 0));
-        final liquidAmount = items.fold<num>(
-          0.00,
-          (amount, item) {
-            final itemAmount = (item.unitPrice ?? 0) * (item.quantity ?? 0);
-            return amount +
-                calculateDiscount(
-                  item.discountType ?? DiscountType.percent,
-                  item.discount ?? '',
-                  itemAmount,
-                );
-          },
-        );
+      builder: (context, state, child) {
         return Column(
           children: [
             Expanded(
@@ -49,7 +37,7 @@ class _PartListWidgetState extends State<PartListWidget> {
                   Expanded(
                     child: ListView.builder(
                       itemBuilder: (context, index) {
-                        final item = items[index];
+                        final item = state.items[index];
                         final itemAmount = (item.unitPrice ?? 0) * (item.quantity ?? 0);
                         final totalPrice = calculateDiscount(
                           item.discountType ?? DiscountType.percent,
@@ -104,15 +92,67 @@ class _PartListWidgetState extends State<PartListWidget> {
                                   children: [
                                     IconButton(
                                       splashRadius: 20,
-                                      onPressed: () {
-                                        widget.partItemsNotifier.value.removeAt(index);
-                                        widget.partItemsNotifier.value = List.from(widget.partItemsNotifier.value);
+                                      onPressed: () async {
+                                        final canDelete = await showConfirmDialog(
+                                          context: context,
+                                          title: 'Excluir peça',
+                                          body: 'Tem certeza?\nEssa ação não poderá ser revertida se as alterações forem salvas.',
+                                        );
+                                        if (canDelete == true) {
+                                          widget.partItemsNotifier.value.items.removeAt(index);
+                                          final newItems = List<PartItemModel>.from(widget.partItemsNotifier.value.items);
+                                          final newItemsAmount = newItems.fold<num>(
+                                            0.00,
+                                            (amount, item) {
+                                              final itemAmount = (item.unitPrice ?? 0) * (item.quantity ?? 0);
+                                              return amount +
+                                                  calculateDiscount(
+                                                    item.discountType ?? DiscountType.percent,
+                                                    item.discount ?? '',
+                                                    itemAmount,
+                                                  );
+                                            },
+                                          );
+                                          widget.partItemsNotifier.value = ItemsState<PartItemModel>(
+                                            items: newItems,
+                                            itemsAmount: newItemsAmount,
+                                          );
+                                        }
                                       },
                                       icon: const Icon(Icons.delete),
                                     ),
                                     IconButton(
                                       splashRadius: 20,
-                                      onPressed: () {},
+                                      onPressed: () async {
+                                        final result = await showDialog<PartItemModel>(
+                                          context: context,
+                                          builder: (context) {
+                                            return FormPartItemWidget(
+                                              partItem: item,
+                                            );
+                                          },
+                                        );
+                                        if (result != null) {
+                                          final newItems = List<PartItemModel>.from(widget.partItemsNotifier.value.items);
+                                          newItems[index] = result;
+                                          final newItemsAmount = newItems.fold<num>(
+                                            0.00,
+                                            (amount, item) {
+                                              final itemAmount = (item.unitPrice ?? 0) * (item.quantity ?? 0);
+                                              return amount +
+                                                  calculateDiscount(
+                                                    item.discountType ?? DiscountType.percent,
+                                                    item.discount ?? '',
+                                                    itemAmount,
+                                                  );
+                                            },
+                                          );
+                                          widget.partItemsNotifier.value = ItemsState<PartItemModel>(
+                                            items: newItems,
+                                            itemsAmount: newItemsAmount,
+                                          );
+                                        }
+                                      },
                                       icon: const Icon(Icons.edit),
                                     ),
                                   ],
@@ -122,14 +162,14 @@ class _PartListWidgetState extends State<PartListWidget> {
                           ),
                         );
                       },
-                      itemCount: items.length,
+                      itemCount: state.items.length,
                     ),
                   ),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('Total de peças: R\$ ${formatter.format(liquidAmount)}'),
+                      child: Text('Total de peças: R\$ ${formatter.format(state.itemsAmount)}'),
                     ),
                   ),
                   if (widget.status == FormOrderStatus.creating || widget.status == FormOrderStatus.editing)
@@ -138,11 +178,27 @@ class _PartListWidgetState extends State<PartListWidget> {
                         final result = await showDialog<PartItemModel>(
                           context: context,
                           builder: (context) {
-                            return const CreatePartItemWidget();
+                            return const FormPartItemWidget();
                           },
                         );
                         if (result != null) {
-                          widget.partItemsNotifier.value = List.from([...widget.partItemsNotifier.value, result]);
+                          final newItems = List<PartItemModel>.from([...widget.partItemsNotifier.value.items, result]);
+                          final newItemsAmount = newItems.fold<num>(
+                            0.00,
+                            (amount, item) {
+                              final itemAmount = (item.unitPrice ?? 0) * (item.quantity ?? 0);
+                              return amount +
+                                  calculateDiscount(
+                                    item.discountType ?? DiscountType.percent,
+                                    item.discount ?? '',
+                                    itemAmount,
+                                  );
+                            },
+                          );
+                          widget.partItemsNotifier.value = ItemsState<PartItemModel>(
+                            items: newItems,
+                            itemsAmount: newItemsAmount,
+                          );
                         }
                       },
                       child: const Text('Adicionar Peça'),

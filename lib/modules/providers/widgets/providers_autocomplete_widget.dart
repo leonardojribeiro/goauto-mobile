@@ -11,10 +11,12 @@ class ProvidersAutocompleteWidget extends StatefulWidget {
     required this.onSelected,
     this.focusNode,
     this.onEditingComplete,
+    this.initialValue,
   }) : super(key: key);
-  final void Function(ProviderModel client) onSelected;
+  final void Function(ProviderModel provider) onSelected;
   final FocusNode? focusNode;
   final VoidCallback? onEditingComplete;
+  final ProviderModel? initialValue;
 
   @override
   State<ProvidersAutocompleteWidget> createState() => _ProvidersAutocompleteWidgetState();
@@ -57,6 +59,9 @@ class _ProvidersAutocompleteWidgetState extends State<ProvidersAutocompleteWidge
                 widget.onSelected(vehicle);
               },
               fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+                if (widget.initialValue != null) {
+                  textEditingController.text = widget.initialValue?.name ?? '';
+                }
                 return Focus(
                   focusNode: widget.focusNode,
                   onFocusChange: (hasFocus) {

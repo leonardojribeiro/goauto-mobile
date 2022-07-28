@@ -6,9 +6,9 @@ class ProviderModel {
 
   ProviderModel({
     this.id,
-    required this.name,
-    required this.telephone,
-    required this.whatsapp,
+    this.name,
+    this.telephone,
+    this.whatsapp,
   });
 
   factory ProviderModel.fromMap(Map<String, dynamic> map) {

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:goauto/modules/orders/models/service_item_model.dart';
 import 'package:intl/intl.dart';
 
-class CreateServiceItemWidget extends StatefulWidget {
-  const CreateServiceItemWidget({Key? key}) : super(key: key);
+import 'package:goauto/modules/orders/models/service_item_model.dart';
+
+class FormServiceItemWidget extends StatefulWidget {
+  const FormServiceItemWidget({
+    Key? key,
+    this.serviceItem,
+  }) : super(key: key);
+  final ServiceItemModel? serviceItem;
 
   @override
-  State<CreateServiceItemWidget> createState() => _CreateServiceItemWidgetState();
+  State<FormServiceItemWidget> createState() => _FormServiceItemWidgetState();
 }
 
-class _CreateServiceItemWidgetState extends State<CreateServiceItemWidget> {
+class _FormServiceItemWidgetState extends State<FormServiceItemWidget> {
   final formatter = NumberFormat('#,##0.00', 'pt_BR');
   final formKey = GlobalKey<FormState>();
   final quantityFocus = FocusNode();
@@ -20,6 +25,17 @@ class _CreateServiceItemWidgetState extends State<CreateServiceItemWidget> {
   final quantityController = TextEditingController(text: '1');
   final unitPriceController = TextEditingController(text: 'R\$ 0,00');
   final unitPriceNotifier = ValueNotifier<num>(0);
+
+  @override
+  void initState() {
+    if (widget.serviceItem != null) {
+      descriptionController.text = widget.serviceItem?.description ?? '';
+      quantityController.text = widget.serviceItem?.quantity?.toString() ?? '';
+      unitPriceNotifier.value = widget.serviceItem?.unitPrice ?? 0;
+      unitPriceController.text = 'R\$ ${formatter.format(widget.serviceItem?.unitPrice ?? 0)}';
+    }
+    super.initState();
+  }
 
   void save() {
     if (formKey.currentState?.validate() == true) {
@@ -37,7 +53,7 @@ class _CreateServiceItemWidgetState extends State<CreateServiceItemWidget> {
   Widget build(BuildContext context) {
     return AlertDialog(
       scrollable: true,
-      title: const Text('Adicionar serviço'),
+      title: Text(widget.serviceItem != null ? 'Alterar serviço' : 'Adicionar serviço'),
       content: Form(
         key: formKey,
         child: Column(

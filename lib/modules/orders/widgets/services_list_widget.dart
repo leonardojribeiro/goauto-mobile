@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:goauto/modules/orders/widgets/dialog_confirm_widget.dart';
 import 'package:intl/intl.dart';
 
 import 'package:goauto/modules/orders/models/service_item_model.dart';
-import 'package:goauto/modules/orders/use_cases/create_service_item/create_service_item_widget.dart';
+import 'package:goauto/modules/orders/widgets/form_service_item_widget.dart';
 import 'package:goauto/modules/orders/widgets/form_order_widget.dart';
 
 class ServicesListWidget extends StatefulWidget {
@@ -11,7 +12,7 @@ class ServicesListWidget extends StatefulWidget {
     required this.serviceItemsNotifier,
     required this.status,
   }) : super(key: key);
-  final ValueNotifier<List<ServiceItemModel>> serviceItemsNotifier;
+  final ValueNotifier<ItemsState<ServiceItemModel>> serviceItemsNotifier;
   final FormOrderStatus status;
 
   @override
@@ -22,10 +23,9 @@ class _ServicesListWidgetState extends State<ServicesListWidget> {
   final formatter = NumberFormat('#,##0.00', 'pt_BR');
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<ServiceItemModel>>(
+    return ValueListenableBuilder<ItemsState<ServiceItemModel>>(
       valueListenable: widget.serviceItemsNotifier,
       builder: (context, services, child) {
-        final amount = services.fold<num>(0.00, (amount, item) => amount + (item.quantity ?? 0) * (item.unitPrice ?? 0));
         return Column(
           children: [
             Expanded(
@@ -34,7 +34,7 @@ class _ServicesListWidgetState extends State<ServicesListWidget> {
                   Expanded(
                     child: ListView.builder(
                       itemBuilder: (context, index) {
-                        final item = services[index];
+                        final item = services.items[index];
                         final itemAmount = (item.unitPrice ?? 0) * (item.quantity ?? 0);
                         return Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -56,19 +56,74 @@ class _ServicesListWidgetState extends State<ServicesListWidget> {
                                   ),
                                 ],
                               ),
+                              if (widget.status == FormOrderStatus.creating || widget.status == FormOrderStatus.editing)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      splashRadius: 20,
+                                      onPressed: () async {
+                                        final canDelete = await showConfirmDialog(
+                                          context: context,
+                                          title: 'Excluir serviço',
+                                          body: 'Tem certeza?\nEssa ação não poderá ser revertida se as alterações forem salvas.',
+                                        );
+                                        if (canDelete == true) {
+                                          widget.serviceItemsNotifier.value.items.removeAt(index);
+                                          final newItems = List<ServiceItemModel>.from(widget.serviceItemsNotifier.value.items);
+                                          final newItemsAmount = newItems.fold<num>(
+                                            0.00,
+                                            (amount, item) => (item.unitPrice ?? 0) * (item.quantity ?? 0),
+                                          );
+                                          widget.serviceItemsNotifier.value = ItemsState<ServiceItemModel>(
+                                            items: newItems,
+                                            itemsAmount: newItemsAmount,
+                                          );
+                                        }
+                                      },
+                                      icon: const Icon(Icons.delete),
+                                    ),
+                                    IconButton(
+                                      splashRadius: 20,
+                                      onPressed: () async {
+                                        final result = await showDialog<ServiceItemModel>(
+                                          context: context,
+                                          builder: (context) {
+                                            return FormServiceItemWidget(
+                                              serviceItem: item,
+                                            );
+                                          },
+                                        );
+                                        if (result != null) {
+                                          final newItems = List<ServiceItemModel>.from(widget.serviceItemsNotifier.value.items);
+                                          newItems[index] = result;
+                                          final newItemsAmount = newItems.fold<num>(
+                                            0.00,
+                                            (amount, item) => (item.unitPrice ?? 0) * (item.quantity ?? 0),
+                                          );
+                                          widget.serviceItemsNotifier.value = ItemsState<ServiceItemModel>(
+                                            items: newItems,
+                                            itemsAmount: newItemsAmount,
+                                          );
+                                        }
+                                      },
+                                      icon: const Icon(Icons.edit),
+                                    ),
+                                  ],
+                                ),
                               const Divider(),
                             ],
                           ),
                         );
                       },
-                      itemCount: services.length,
+                      itemCount: services.items.length,
                     ),
                   ),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('Total de serviços: R\$ ${formatter.format(amount)}'),
+                      child: Text('Total de serviços: R\$ ${formatter.format(services.itemsAmount)}'),
                     ),
                   ),
                   if (widget.status == FormOrderStatus.creating || widget.status == FormOrderStatus.editing)
@@ -77,10 +132,15 @@ class _ServicesListWidgetState extends State<ServicesListWidget> {
                         final result = await showDialog<ServiceItemModel>(
                             context: context,
                             builder: (context) {
-                              return const CreateServiceItemWidget();
+                              return const FormServiceItemWidget();
                             });
                         if (result != null) {
-                          widget.serviceItemsNotifier.value = List.from([...widget.serviceItemsNotifier.value, result]);
+                          final newItems = List<ServiceItemModel>.from([...widget.serviceItemsNotifier.value.items, result]);
+                          final newItemsAmount = newItems.fold<num>(0.00, (amount, item) => amount + (item.quantity ?? 0) * (item.unitPrice ?? 0));
+                          widget.serviceItemsNotifier.value = ItemsState(
+                            items: newItems,
+                            itemsAmount: newItemsAmount,
+                          );
                         }
                       },
                       child: const Text('Adicionar serviço'),
