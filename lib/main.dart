@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:goauto/app_widget.dart';
 import 'package:goauto/config/setup_dependencies.dart';
 import 'package:goauto/firebase_options.dart';
 import 'package:goauto/modules/clients/use_cases/create_client/create_client_widget.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyWidget(),
+      home: const AppWidget(),
     );
   }
 }

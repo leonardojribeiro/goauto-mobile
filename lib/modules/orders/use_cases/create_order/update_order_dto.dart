@@ -10,6 +10,7 @@ class UpdateOrderDTO {
   final List<PartItemModel> partItems;
   final num additionalDiscount;
   final num payedAmount;
+  final num totalPrice;
   final String symptom;
   final DateTime lastModified;
 
@@ -21,6 +22,7 @@ class UpdateOrderDTO {
     required this.partItems,
     required this.additionalDiscount,
     required this.payedAmount,
+    required this.totalPrice,
     required this.symptom,
     required this.lastModified,
   });
@@ -33,6 +35,7 @@ class UpdateOrderDTO {
     List<PartItemModel>? partItems,
     num? additionalDiscount,
     num? payedAmount,
+    num? totalPrice,
     String? symptom,
     DateTime? lastModified,
   }) {
@@ -44,6 +47,7 @@ class UpdateOrderDTO {
       partItems: partItems ?? this.partItems,
       additionalDiscount: additionalDiscount ?? this.additionalDiscount,
       payedAmount: payedAmount ?? this.payedAmount,
+      totalPrice: totalPrice ?? this.totalPrice,
       symptom: symptom ?? this.symptom,
       lastModified: lastModified ?? this.lastModified,
     );
@@ -58,27 +62,9 @@ class UpdateOrderDTO {
       'partItems': partItems.map((x) => x.toMap()).toList(),
       'additionalDiscount': additionalDiscount,
       'payedAmount': payedAmount,
+      'totalPrice': totalPrice,
       'symptom': symptom,
       'lastModified': lastModified.millisecondsSinceEpoch,
     };
-  }
-
-  factory UpdateOrderDTO.fromMap(Map<String, dynamic> map) {
-    return UpdateOrderDTO(
-      id: map['id'] ?? '',
-      vehicleId: map['vehicleId'] ?? '',
-      vehicle: VehicleModel.fromMap(map['vehicle']),
-      serviceItems: List<ServiceItemModel>.from(map['serviceItems']?.map((x) => ServiceItemModel.fromMap(x))),
-      partItems: List<PartItemModel>.from(map['partItems']?.map((x) => PartItemModel.fromMap(x))),
-      additionalDiscount: map['additionalDiscount'] ?? 0,
-      payedAmount: map['payedAmount'] ?? 0,
-      symptom: map['symptom'] ?? '',
-      lastModified: DateTime.fromMillisecondsSinceEpoch(map['lastModified']),
-    );
-  }
-
-  @override
-  String toString() {
-    return 'UpdateOrderDTO(id: $id, vehicleId: $vehicleId, vehicle: $vehicle, serviceItems: $serviceItems, partItems: $partItems, additionalDiscount: $additionalDiscount, payedAmount: $payedAmount, symptom: $symptom, lastModified: $lastModified)';
   }
 }

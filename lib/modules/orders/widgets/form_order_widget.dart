@@ -39,9 +39,14 @@ class _FormOrderWidgetState extends State<FormOrderWidget> {
   final payedAmountController = TextEditingController(text: 'R\$ 0,00');
   final payedAmountNotifier = ValueNotifier<num>(0);
 
-  final amountNotifier = ValueNotifier<num>(0);
+  final totalPriceNotifier = ValueNotifier<num>(0);
 
   FormOrderStatus status = FormOrderStatus.creating;
+  bool isSaving = false;
+
+  void handleTotalPriceNotification() {
+    totalPriceNotifier.value = serviceItemsNotifier.value.itemsAmount + partItemsNotifier.value.itemsAmount - additionalDiscountNotifier.value;
+  }
 
   @override
   void initState() {
@@ -72,9 +77,15 @@ class _FormOrderWidgetState extends State<FormOrderWidget> {
         itemsAmount: newItemsAmount,
       );
     }
-    symptomController.text = widget.order?.symptom ?? '';
-    payedAmountNotifier.value = widget.order?.payedAmount ?? 0;
-    additionalDiscountNotifier.value = widget.order?.additionalDiscount ?? 0;
+    if (widget.order?.symptom != null) {
+      symptomController.text = widget.order?.symptom ?? '';
+    }
+    if (widget.order?.payedAmount != null) {
+      payedAmountNotifier.value = widget.order?.payedAmount ?? 0;
+    }
+    if (widget.order?.additionalDiscount != null) {
+      additionalDiscountNotifier.value = widget.order?.additionalDiscount ?? 0;
+    }
     if (widget.order?.payedAmount != null) {
       payedAmountController.text = 'R\$ ${formatter.format(widget.order?.payedAmount ?? ' ')}';
     }
@@ -84,6 +95,10 @@ class _FormOrderWidgetState extends State<FormOrderWidget> {
     if (widget.order?.id != null) {
       status = FormOrderStatus.viewing;
     }
+    serviceItemsNotifier.addListener(handleTotalPriceNotification);
+    partItemsNotifier.addListener(handleTotalPriceNotification);
+    additionalDiscountNotifier.addListener(handleTotalPriceNotification);
+    handleTotalPriceNotification();
     super.initState();
   }
 
@@ -109,7 +124,8 @@ class _FormOrderWidgetState extends State<FormOrderWidget> {
   }
 
   Future<void> save() async {
-    if (!hasNoWork()) {
+    if (!hasNoWork() && !isSaving) {
+      isSaving = true;
       final navigator = Navigator.of(context);
       final repository = GetIt.I.get<OrdersRepository>();
       switch (status) {
@@ -123,6 +139,7 @@ class _FormOrderWidgetState extends State<FormOrderWidget> {
               createdAt: DateTime.now(),
               additionalDiscount: additionalDiscountNotifier.value,
               payedAmount: payedAmountNotifier.value,
+              totalPrice: totalPriceNotifier.value,
               symptom: symptomController.text,
             ),
           );
@@ -140,6 +157,7 @@ class _FormOrderWidgetState extends State<FormOrderWidget> {
               additionalDiscount: additionalDiscountNotifier.value,
               payedAmount: payedAmountNotifier.value,
               symptom: symptomController.text,
+              totalPrice: totalPriceNotifier.value,
             ),
           );
           navigator.pop(true);
@@ -184,15 +202,13 @@ class _FormOrderWidgetState extends State<FormOrderWidget> {
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
-                AnimatedBuilder(
-                  animation: Listenable.merge([serviceItemsNotifier, partItemsNotifier, additionalDiscountNotifier]),
-                  builder: (context, child) {
-                    final servicesAmount = serviceItemsNotifier.value.itemsAmount;
-                    final partsAmount = partItemsNotifier.value.itemsAmount;
+                ValueListenableBuilder<num>(
+                  valueListenable: totalPriceNotifier,
+                  builder: (context, totalPrice, child) {
                     return Align(
                       alignment: Alignment.centerRight,
                       child: Text(
-                        'Total: R\$ ${formatter.format(servicesAmount + partsAmount - additionalDiscountNotifier.value)}',
+                        'Total: R\$ ${formatter.format(totalPrice)}',
                         style: const TextStyle(color: Colors.white),
                       ),
                     );

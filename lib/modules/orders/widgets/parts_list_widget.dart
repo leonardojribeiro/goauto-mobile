@@ -53,6 +53,7 @@ class _PartListWidgetState extends State<PartListWidget> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Row(
                                 children: [
@@ -76,8 +77,8 @@ class _PartListWidgetState extends State<PartListWidget> {
                                   Text('= R\$ ${formatter.format(itemAmount)}'),
                                 ],
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text('- $formattedDiscount'),
                                   Text(

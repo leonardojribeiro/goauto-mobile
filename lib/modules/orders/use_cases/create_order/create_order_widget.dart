@@ -28,35 +28,37 @@ class _CreateOrderWidgetState extends State<CreateOrderWidget> {
             physics: const NeverScrollableScrollPhysics(),
             controller: pageController,
             children: [
-              Builder(builder: (context) {
-                return Scaffold(
-                  appBar: AppBar(
-                    title: const Text('Cadastrar ordem de serviço'),
-                  ),
-                  body: Center(
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: VehiclesAutocompleteWidget(
-                          onSelected: (vehicle) => vehicleNotifier.value = vehicle,
+              Builder(
+                builder: (context) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      title: const Text('Cadastrar ordem de serviço'),
+                    ),
+                    body: Center(
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: VehiclesAutocompleteWidget(
+                            onSelected: (vehicle) => vehicleNotifier.value = vehicle,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  floatingActionButton: vehicle != null
-                      ? FloatingActionButton(
-                          onPressed: () {
-                            FocusScope.of(context).unfocus();
-                            pageController.nextPage(
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          child: const Icon(Icons.arrow_forward_rounded),
-                        )
-                      : Container(),
-                );
-              }),
+                    floatingActionButton: vehicle != null
+                        ? FloatingActionButton(
+                            onPressed: () {
+                              FocusScope.of(context).unfocus();
+                              pageController.nextPage(
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: const Icon(Icons.arrow_forward_rounded),
+                          )
+                        : Container(),
+                  );
+                },
+              ),
               FormOrderWidget(
                 order: OrderModel(
                   vehicle: vehicleNotifier.value,

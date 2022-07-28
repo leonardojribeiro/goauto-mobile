@@ -11,6 +11,8 @@ class CreateOrderDTO {
   final num additionalDiscount;
   final num payedAmount;
   final String symptom;
+  final num totalPrice;
+
   CreateOrderDTO({
     required this.vehicleId,
     required this.vehicle,
@@ -20,29 +22,8 @@ class CreateOrderDTO {
     required this.additionalDiscount,
     required this.payedAmount,
     required this.symptom,
+    required this.totalPrice,
   });
-
-  CreateOrderDTO copyWith({
-    String? vehicleId,
-    VehicleModel? vehicle,
-    List<ServiceItemModel>? serviceItems,
-    List<PartItemModel>? partItems,
-    DateTime? createdAt,
-    num? additionalDiscount,
-    num? payedAmount,
-    String? symptom,
-  }) {
-    return CreateOrderDTO(
-      vehicleId: vehicleId ?? this.vehicleId,
-      vehicle: vehicle ?? this.vehicle,
-      serviceItems: serviceItems ?? this.serviceItems,
-      partItems: partItems ?? this.partItems,
-      createdAt: createdAt ?? this.createdAt,
-      additionalDiscount: additionalDiscount ?? this.additionalDiscount,
-      payedAmount: payedAmount ?? this.payedAmount,
-      symptom: symptom ?? this.symptom,
-    );
-  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -54,11 +35,7 @@ class CreateOrderDTO {
       'additionalDiscount': additionalDiscount,
       'payedAmount': payedAmount,
       'symptom': symptom,
+      'totalPrice': totalPrice,
     };
-  }
-
-  @override
-  String toString() {
-    return 'CreateOrderDTO(vehicleId: $vehicleId, vehicle: $vehicle, serviceItems: $serviceItems, partItems: $partItems, createdAt: $createdAt, additionalDiscount: $additionalDiscount, payedAmount: $payedAmount, symptom: $symptom)';
   }
 }
