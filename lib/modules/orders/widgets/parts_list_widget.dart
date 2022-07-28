@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:goauto/modules/orders/models/part_item_model.dart';
 import 'package:goauto/modules/orders/use_cases/create_part_item/create_part_item_widget.dart';
+import 'package:goauto/modules/orders/widgets/form_order_widget.dart';
 import 'package:goauto/shared/utilz/calculate_discount.dart';
 import 'package:goauto/shared/utilz/format_discount.dart';
-import 'package:intl/intl.dart';
 
 class PartListWidget extends StatefulWidget {
   const PartListWidget({
     Key? key,
     required this.partItemsNotifier,
+    required this.status,
   }) : super(key: key);
   final ValueNotifier<List<PartItemModel>> partItemsNotifier;
+  final FormOrderStatus status;
 
   @override
   State<PartListWidget> createState() => _PartListWidgetState();
@@ -61,6 +64,7 @@ class _PartListWidgetState extends State<PartListWidget> {
                           padding: const EdgeInsets.all(8.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Row(
                                 children: [
@@ -77,48 +81,42 @@ class _PartListWidgetState extends State<PartListWidget> {
                                   )
                                 ],
                               ),
-                              Table(
-                                columnWidths: const {
-                                  0: FlexColumnWidth(),
-                                  1: FixedColumnWidth(30),
-                                  2: FixedColumnWidth(70),
-                                  3: FlexColumnWidth(),
-                                  4: FixedColumnWidth(70),
-                                },
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const TableRow(
-                                    children: [
-                                      TableCell(child: Text('Valor Unitário')),
-                                      TableCell(child: Text('QTD')),
-                                      TableCell(child: Text('Bruto')),
-                                      TableCell(child: Text('Desconto')),
-                                      TableCell(child: Text('Líquido')),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child: Text('R\$ ${formatter.format(item.unitPrice)}'),
-                                      ),
-                                      TableCell(
-                                        child: Text('${item.quantity}'),
-                                      ),
-                                      TableCell(
-                                        child: Text('R\$ ${formatter.format(itemAmount)}'),
-                                      ),
-                                      TableCell(
-                                        child: Text(formattedDiscount),
-                                      ),
-                                      TableCell(
-                                        child: Align(
-                                          alignment: Alignment.centerRight,
-                                          child: Text('R\$ ${formatter.format(totalPrice)}'),
-                                        ),
-                                      ),
-                                    ],
+                                  Text('R\$ ${formatter.format(item.unitPrice ?? 0)} X ${item.quantity}'),
+                                  Text('= R\$ ${formatter.format(itemAmount)}'),
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('- $formattedDiscount'),
+                                  Text(
+                                    'Total: R\$ ${formatter.format(totalPrice)}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
+                              if (widget.status == FormOrderStatus.creating || widget.status == FormOrderStatus.editing)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      splashRadius: 20,
+                                      onPressed: () {
+                                        widget.partItemsNotifier.value.removeAt(index);
+                                        widget.partItemsNotifier.value = List.from(widget.partItemsNotifier.value);
+                                      },
+                                      icon: const Icon(Icons.delete),
+                                    ),
+                                    IconButton(
+                                      splashRadius: 20,
+                                      onPressed: () {},
+                                      icon: const Icon(Icons.edit),
+                                    ),
+                                  ],
+                                ),
                               const Divider(),
                             ],
                           ),
@@ -134,20 +132,21 @@ class _PartListWidgetState extends State<PartListWidget> {
                       child: Text('Total de peças: R\$ ${formatter.format(liquidAmount)}'),
                     ),
                   ),
-                  OutlinedButton(
-                    onPressed: () async {
-                      final result = await showDialog<PartItemModel>(
-                        context: context,
-                        builder: (context) {
-                          return const CreatePartItemWidget();
-                        },
-                      );
-                      if (result != null) {
-                        widget.partItemsNotifier.value = List.from([...widget.partItemsNotifier.value, result]);
-                      }
-                    },
-                    child: const Text('Adicionar Peça'),
-                  ),
+                  if (widget.status == FormOrderStatus.creating || widget.status == FormOrderStatus.editing)
+                    OutlinedButton(
+                      onPressed: () async {
+                        final result = await showDialog<PartItemModel>(
+                          context: context,
+                          builder: (context) {
+                            return const CreatePartItemWidget();
+                          },
+                        );
+                        if (result != null) {
+                          widget.partItemsNotifier.value = List.from([...widget.partItemsNotifier.value, result]);
+                        }
+                      },
+                      child: const Text('Adicionar Peça'),
+                    ),
                 ],
               ),
             ),

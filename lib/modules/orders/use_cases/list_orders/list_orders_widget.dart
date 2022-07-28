@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:goauto/modules/orders/models/order_model.dart';
 import 'package:goauto/modules/orders/repositories/orders_repository.dart';
+import 'package:goauto/modules/orders/widgets/form_order_widget.dart';
 
 class ListOrdersWidget extends StatefulWidget {
   const ListOrdersWidget({Key? key}) : super(key: key);
@@ -35,7 +36,20 @@ class _ListOrdersWidgetState extends State<ListOrdersWidget> {
           return ListView.builder(
             itemBuilder: (context, index) {
               final order = value[index];
-              return Text(order.toString());
+              final createdAt = order.createdAt != null ? MaterialLocalizations.of(context).formatCompactDate(order.createdAt ?? DateTime.now()) : '';
+              return ListTile(
+                title: Text(order.vehicle?.licensePlate?.toUpperCase() ?? ''),
+                subtitle: Text(createdAt),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => FormOrderWidget(
+                        order: order,
+                      ),
+                    ),
+                  );
+                },
+              );
             },
             itemCount: value.length,
           );

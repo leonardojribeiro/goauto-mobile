@@ -171,10 +171,6 @@ class _CreatePartItemWidgetState extends State<CreatePartItemWidget> {
         ),
       ),
       actions: [
-        OutlinedButton(
-          onPressed: Navigator.of(context).pop,
-          child: const Icon(Icons.close),
-        ),
         AnimatedBuilder(
           animation: Listenable.merge([
             unitPriceNotifier,
